@@ -8,10 +8,21 @@ dotenv.config();
 
 const app = express();
 app.use(cors({
-  origin: '*', // Replace with your frontend URL in production for better security
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: true, // Echoes the request origin, allowing any origin while supporting credentials
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
+  credentials: true,
+  optionsSuccessStatus: 200,
+  maxAge: 86400 // Cache preflight response for 24 hours
 }));
+
+// Additional middleware to handle "Access-Control-Allow-Private-Network" for local development
+app.use((req, res, next) => {
+  if (req.headers['access-control-request-private-network']) {
+    res.setHeader('Access-Control-Allow-Private-Network', 'true');
+  }
+  next();
+});
 app.use(express.json());
 
 // Health check endpoint
@@ -89,7 +100,7 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
     const RATE = 90000;
 
     // Calculate actual balance from cash liquidity
-    const balance = 
+    const balance =
       (Number(cash.system_usd || 0) + Number(cash.system_lbp || 0) / RATE) +
       (Number(cash.mobile_usd || 0) + Number(cash.mobile_lbp || 0) / RATE) +
       (Number(cash.physical_usd || 0) + Number(cash.physical_lbp || 0) / RATE);

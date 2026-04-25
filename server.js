@@ -7,11 +7,28 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: '*', // Replace with your frontend URL in production for better security
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'Backend is running' });
+});
 
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  console.error('CRITICAL ERROR: JWT_SECRET is not defined in environment variables.');
+  process.exit(1);
+}
+
+// Trust proxy for Render/Vercel
+app.set('trust proxy', 1);
 
 // Middleware for auth
 const authenticateToken = (req, res, next) => {
@@ -334,4 +351,10 @@ app.post('/api/settings/balance', authenticateToken, async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong on the server' });
 });

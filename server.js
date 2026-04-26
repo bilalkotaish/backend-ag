@@ -8,12 +8,11 @@ dotenv.config();
 
 const app = express();
 app.use(cors({
-  origin: true, // Echoes the request origin, allowing any origin while supporting credentials
+  origin: (origin, callback) => callback(null, true),
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   credentials: true,
-  optionsSuccessStatus: 200,
-  maxAge: 86400 // Cache preflight response for 24 hours
+  optionsSuccessStatus: 200
 }));
 
 // Additional middleware to handle "Access-Control-Allow-Private-Network" for local development
